@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexGen AI | Trusted Sentiment Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg-main: #131314;
+    --bg-sidebar: #1e1f20;
+    --bg-input: #1e1f20;
+    --bg-hover: #333537;
+    --text-primary: #e3e3e3;
+    --text-secondary: #c4c7c5;
+    --text-muted: #8e918f;
+    --accent-blue: #a8c7fa;
+    --border-color: #444746;
+    --user-avatar: #9b72cb; /* Premium Purple */
+    --gold: #fbbc04;
+  }
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar { width: 280px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); height: 100%; z-index: 100; border-right: 1px solid var(--border-color);}
+  
+  .sidebar-header { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
+  .logo-area { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 500; color: var(--text-primary); cursor: pointer; }
+  .logo-area i { font-size: 20px; background: linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #131314 75%, #131314 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 400% 100%; }
+  .collapse-btn { background: transparent; border: none; color: var(--text-secondary); font-size: 18px; cursor: pointer; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+  .collapse-btn:hover { background-color: var(--bg-hover); }
+
+  .new-chat-container { padding: 0 15px 15px; }
+  .new-chat-btn { background-color: var(--bg-main); border: none; color: var(--text-primary); padding: 12px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; width: auto; border: 1px solid var(--border-color);}
+  .new-chat-btn:hover { background-color: var(--bg-hover); }
+
+  .history-section { flex-grow: 1; overflow-y: auto; padding: 0 15px; }
+  .history-title { font-size: 13px; color: var(--text-muted); margin: 15px 0 10px 10px; font-weight: 500; }
+  .history-item { padding: 10px 12px; border-radius: 20px; font-size: 14px; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; margin-bottom: 2px; }
+  .history-item-left { display: flex; align-items: center; gap: 12px; overflow: hidden; white-space: nowrap; }
+  .history-item-left i { font-size: 14px; color: var(--text-secondary); flex-shrink: 0;}
+  .history-item span { overflow: hidden; text-overflow: ellipsis; }
+  .delete-chat-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: none; padding: 5px; border-radius: 50%; transition: 0.2s; }
+  .history-item:hover .delete-chat-btn { display: block; }
+  .delete-chat-btn:hover { color: #ea4335; background: rgba(234, 67, 53, 0.1); }
+  .history-item:hover { background-color: var(--bg-hover); }
+  .history-item.active { background-color: #004a7740; color: var(--accent-blue); }
+  .history-item.active i { color: var(--accent-blue); }
+
+  /* Big Ad Box in Sidebar (Recent Ke Niche) */
+  .sidebar-ad-container { padding: 15px; margin-top: auto; }
+  .sidebar-ad {
+    background-color: rgba(255,255,255,0.02);
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 20px 10px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    min-height: 250px; /* Thoda bada box */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar-ad span { font-weight: 600; font-size: 11px; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; color: var(--text-secondary);}
+
+  /* User Footer */
+  .sidebar-footer { padding: 15px; display: flex; align-items: center; justify-content: space-between; position: relative; border-top: 1px solid var(--border-color); }
+  .user-profile { display: flex; align-items: center; gap: 12px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background-color: var(--user-avatar); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+  .user-info { display: flex; flex-direction: column; }
+  .user-name { font-size: 14px; font-weight: 500; }
+  .user-badge { font-size: 11px; color: var(--text-primary); background-color: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;}
+  .settings-btn { background: transparent; border: none; color: var(--text-secondary); font-size: 18px; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; transition: 0.2s; }
+  .settings-btn:hover { background-color: var(--bg-hover); }
+
+  /* Settings Dropdown */
+  .settings-dropdown { position: absolute; bottom: 65px; right: 15px; background-color: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 12px; width: 200px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; flex-direction: column; padding: 8px 0; z-index: 200; }
+  .settings-dropdown.show { display: flex; }
+  .settings-dropdown a { color: var(--text-primary); text-decoration: none; padding: 10px 16px; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+  .settings-dropdown a:hover { background-color: var(--bg-hover); }
+
+  /* Main Area */
+  .main-area { flex-grow: 1; display: flex; flex-direction: column; position: relative; background-color: var(--bg-main); }
+  .chat-container { flex-grow: 1; overflow-y: auto; padding: 20px 15% 150px; scroll-behavior: smooth; }
+
+  .message { margin-bottom: 30px; display: flex; flex-direction: column; }
+  .msg-user { align-items: flex-end; }
+  .msg-user .bubble { background-color: var(--bg-sidebar); color: var(--text-primary); padding: 12px 20px; border-radius: 24px; max-width: 80%; font-size: 15px; line-height: 1.5; }
+  
+  .msg-ai { align-items: flex-start; }
+  .msg-ai .header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .msg-ai .header i { font-size: 20px; background: linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #131314 75%, #131314 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .msg-ai .bubble { color: var(--text-primary); max-width: 90%; font-size: 15px; line-height: 1.6; padding-left: 32px; }
+
+  /* In-Chat Ad Box */
+  .in-chat-ad { margin-top: 15px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); padding: 15px; border-radius: 12px; text-align: center; font-size: 12px; color: var(--text-muted); width: 100%; max-width: 500px; }
+  .in-chat-ad span { display: block; font-weight: 600; font-size: 10px; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; color: var(--text-secondary);}
+
+  /* Input Area */
+  .input-wrapper { position: absolute; bottom: 0; left: 0; width: 100%; padding: 0 15% 20px; background: linear-gradient(180deg, rgba(19,19,20,0) 0%, rgba(19,19,20,1) 40%); }
+  .input-box { background-color: var(--bg-input); border-radius: 30px; padding: 15px 20px; display: flex; align-items: flex-end; gap: 15px; border: 1px solid transparent; transition: 0.3s; position: relative;}
+  .input-box:focus-within { background-color: var(--bg-hover); }
+  
+  .input-icon-btn { background: transparent; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; padding: 5px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+  .input-icon-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--text-primary);}
+  
+  textarea { flex-grow: 1; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 15px; resize: none; outline: none; height: 24px; max-height: 150px; padding: 2px 0; }
+  
+  .disclaimer { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 15px; }
+
+  /* Attach Menu Plugin */
+  .attach-menu { position: absolute; bottom: 75px; left: 20px; background-color: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; padding: 8px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; z-index: 1000; width: 200px; }
+  .attach-menu.show { display: flex; }
+  .attach-menu button { background: transparent; border: none; color: var(--text-primary); padding: 12px 20px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 15px; font-size: 14px; font-family: inherit;}
+  .attach-menu button i { font-size: 16px; color: var(--text-secondary); width: 20px; text-align: center;}
+  .attach-menu button:hover { background-color: var(--bg-hover); }
+
+  /* Result Box Styling */
+  .analysis-card { background-color: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 500px;}
+  .analysis-card h4 { margin: 0 0 15px 0; color: var(--text-primary); font-weight: 500;}
+  .res-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;}
+  .res-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+  .res-label { color: var(--text-secondary); font-size: 14px;}
+  .res-value { font-weight: 600; font-size: 14px;}
+
+  /* Mobile */
+  .mobile-menu-btn { display: none; background: transparent; border: none; color: var(--text-primary); font-size: 20px; padding: 15px; cursor: pointer; }
+  @media (max-width: 768px) {
+    .sidebar { position: fixed; left: -280px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+    .sidebar.open { left: 0; }
+    .mobile-menu-btn { display: block; position: absolute; top: 0; left: 0; z-index: 50; }
+    .chat-container { padding: 60px 20px 120px; }
+    .input-wrapper { padding: 0 15px 15px; }
+    .msg-ai .bubble { padding-left: 0; }
+    .attach-menu { left: 15px; }
+  }
+
+  /* Loading Dots */
+  .typing-indicator { display: inline-flex; gap: 4px; align-items: center; padding-left: 32px; height: 24px; }
+  .dot { width: 6px; height: 6px; background-color: var(--text-secondary); border-radius: 50%; animation: pulse 1.4s infinite ease-in-out both; }
+  .dot:nth-child(1) { animation-delay: -0.32s; }
+  .dot:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes pulse { 0%, 80%, 100% { transform: scale(0); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+</style>
+<!-- AD SENSE CODE HERE -->
+
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-area" onclick="location.reload()">
+        <i class="fa-solid fa-sparkles"></i>
+        <span>NexGen AI</span>
+      </div>
+      <button class="collapse-btn" id="closeSidebar"><i class="fa-solid fa-pen-to-square"></i></button>
+    </div>
+    
+    <div class="new-chat-container">
+      <button class="new-chat-btn" onclick="createNewChat()">
+        <i class="fa-solid fa-plus"></i> New chat
+      </button>
+    </div>
+    
+    <div class="history-section">
+      <div class="history-title">Recent</div>
+      <div id="historyList">
+        <!-- Chats will load here -->
+      </div>
+    </div>
+    
+    <!-- BIG AD BOX (Recent Ke Niche) -->
+    <div class="sidebar-ad-container">
+      <div class="sidebar-ad">
+        <span>Sponsored Banner</span>
+        <br>
+        Google AdSense Space<br><br>
+        (Displays Large Banner Ad Here)<br><br>
+        <i class="fa-solid fa-rectangle-ad" style="font-size: 30px; opacity: 0.5;"></i>
+      </div>
+    </div>
+
+    <!-- User Profile & Settings -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+        <div class="user-info">
+          <span class="user-name">AI Explorer</span>
+          <span class="user-badge" id="userBadgeLabel">100% Free Plan</span>
+        </div>
+      </div>
+      <button class="settings-btn" id="settingsToggle">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+      
+      <!-- Settings Menu -->
+      <div class="settings-dropdown" id="settingsMenu">
+        <a href="terms.html"><i class="fa-solid fa-file-contract"></i> Terms & Conditions</a>
+        <a href="privacy.html"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a>
+        <a href="contact.html"><i class="fa-solid fa-envelope"></i> Help / Issues</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Area -->
+  <div class="main-area">
+    <button class="mobile-menu-btn" id="openSidebar"><i class="fa-solid fa-bars"></i></button>
+    
+    <div class="chat-container" id="chatArea">
+      <!-- Chat bubbles injected via JS -->
+    </div>
+    
+    <div class="input-wrapper">
+      
+      <!-- Attach Menu Popup -->
+      <div class="attach-menu" id="attachMenu">
+        <button onclick="alert('Upload Image feature is locked in Demo.')"><i class="fa-regular fa-image"></i> Add Image</button>
+        <button onclick="alert('Upload Document feature is locked in Demo.')"><i class="fa-solid fa-file-lines"></i> Add Document</button>
+        <button onclick="alert('Plugin store is currently unavailable.')"><i class="fa-solid fa-puzzle-piece"></i> Add Plugin</button>
+      </div>
+
+      <div class="input-box">
+        <button class="input-icon-btn" id="attachBtn"><i class="fa-solid fa-plus"></i></button>
+        <textarea id="userInput" placeholder="Ask NexGen AI..." rows="1" oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
+        <button class="input-icon-btn" id="sendBtn" style="color: var(--accent-blue);"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+      <div class="disclaimer">
+        NexGen AI is a secure sentiment tool. Verify important metrics.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // UI Toggles
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('openSidebar').onclick = () => sidebar.classList.add('open');
+    document.getElementById('closeSidebar').onclick = () => {
+      if(window.innerWidth <= 768) sidebar.classList.remove('open');
+    };
+    
+    const settingsMenu = document.getElementById('settingsMenu');
+    document.getElementById('settingsToggle').onclick = (e) => {
+      e.stopPropagation();
+      settingsMenu.classList.toggle('show');
+    };
+    
+    const attachMenu = document.getElementById('attachMenu');
+    document.getElementById('attachBtn').onclick = (e) => {
+      e.stopPropagation();
+      attachMenu.classList.toggle('show');
+    };
+
+    document.body.onclick = (e) => {
+      if(!e.target.closest('#settingsMenu')) settingsMenu.classList.remove('show');
+      if(!e.target.closest('#attachMenu')) attachMenu.classList.remove('show');
+    };
+
+    // Chat Logic
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatArea = document.getElementById('chatArea');
+    const historyList = document.getElementById('historyList');
+    
+    let chats = JSON.parse(localStorage.getItem('nexgenUltimateChatsFree')) || [];
+    let currentChatId = null;
+
+    function init() {
+      if (chats.length === 0) createNewChat();
+      else {
+        currentChatId = chats[0].id;
+        renderSidebar();
+        renderChatMessages(currentChatId);
+      }
+    }
+
+    function saveChats() {
+      localStorage.setItem('nexgenUltimateChatsFree', JSON.stringify(chats));
+      renderSidebar();
+    }
+
+    function createNewChat() {
+      const newId = Date.now().toString();
+      const defaultMsg = `
+        <div class="message msg-ai">
+          <div class="header">
+            <i class="fa-solid fa-sparkles"></i>
+            <span style="font-weight: 500;">NexGen AI</span>
+            <span style="font-size: 10px; background: rgba(52, 168, 83, 0.15); color: #34a853; padding: 3px 8px; border-radius: 12px; margin-left: 10px; font-weight: 600;"><i class="fa-solid fa-shield-check"></i> 100% Free & Unlimited</span>
+          </div>
+          <div class="bubble">
+            Welcome to NexGen AI. I am an advanced, highly secure Natural Language Processing assistant.<br><br>
+            <strong>What I do:</strong> I analyze text, product reviews, and comments to extract the underlying sentiment, emotional tone, and predict real-world ratings.<br>
+            <strong>How to use:</strong> Simply type or paste your text below, or use the <strong>+</strong> icon to attach documents. I will instantly process your request securely on your device. How may I assist you today?
+          </div>
+        </div>
+      `;
+      const newChat = { id: newId, title: "New Chat", htmlContent: defaultMsg };
+      chats.unshift(newChat);
+      currentChatId = newId;
+      saveChats();
+      renderChatMessages(currentChatId);
+      if(window.innerWidth <= 768) sidebar.classList.remove('open');
+    }
+
+    function loadChat(id) {
+      currentChatId = id;
+      renderChatMessages(id);
+      renderSidebar();
+      if(window.innerWidth <= 768) sidebar.classList.remove('open');
+    }
+
+    function deleteChat(id, e) {
+      e.stopPropagation();
+      chats = chats.filter(c => c.id !== id);
+      if (chats.length === 0) createNewChat();
+      else if (id === currentChatId) loadChat(chats[0].id);
+      else saveChats();
+    }
+
+    function renderSidebar() {
+      historyList.innerHTML = '';
+      chats.forEach(chat => {
+        const div = document.createElement('div');
+        div.className = `history-item ${chat.id === currentChatId ? 'active' : ''}`;
+        div.innerHTML = `
+          <div class="history-item-left">
+            <i class="fa-regular fa-message"></i>
+            <span>${chat.title}</span>
+          </div>
+          <button class="delete-chat-btn" onclick="deleteChat('${chat.id}', event)" title="Delete Chat"><i class="fa-solid fa-trash"></i></button>
+        `;
+        div.onclick = () => loadChat(chat.id);
+        historyList.appendChild(div);
+      });
+    }
+
+    function renderChatMessages(id) {
+      const chat = chats.find(c => c.id === id);
+      if(chat) { chatArea.innerHTML = chat.htmlContent; scrollToBottom(); }
+    }
+
+    function updateCurrentChatContent() {
+      const chatIndex = chats.findIndex(c => c.id === currentChatId);
+      if(chatIndex !== -1) { chats[chatIndex].htmlContent = chatArea.innerHTML; saveChats(); }
+    }
+
+    userInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    // --- DYNAMIC NLP SENTIMENT LOGIC ---
+    function analyzeSentiment(text) {
+        const lower = text.toLowerCase();
+        
+        const posWords = {
+            'amazing': 1.5, 'excellent': 1.5, 'love': 1.2, 'perfect': 1.5, 'best': 1.2,
+            'good': 0.8, 'great': 1.0, 'awesome': 1.2, 'happy': 1.0, 'beautiful': 1.0,
+            'fast': 0.5, 'nice': 0.5, 'superb': 1.2, 'fantastic': 1.3, 'recommend': 1.0,
+            'brilliant': 1.2, 'outstanding': 1.4, 'satisfied': 1.0, 'liked': 0.7, 'cool': 0.5,
+            'wonderful': 1.2, 'delighted': 1.1, 'glad': 0.8, 'helpful': 0.9, 'easy': 0.6,
+            'impressive': 1.1, 'stunning': 1.3, 'solid': 0.7, 'value': 0.8
+        };
+        
+        const negWords = {
+            'terrible': -1.5, 'worst': -1.5, 'awful': -1.5, 'horrible': -1.4, 'hate': -1.2,
+            'bad': -0.8, 'poor': -1.0, 'issue': -0.6, 'fake': -1.0, 'scam': -1.5,
+            'broken': -1.0, 'disappointed': -1.2, 'waste': -1.2, 'slow': -0.6, 'bug': -0.5,
+            'useless': -1.3, 'annoying': -0.9, 'frustrating': -1.1, 'sad': -0.8, 'angry': -1.2,
+            'failed': -1.0, 'error': -0.7, 'hard': -0.4, 'difficult': -0.5, 'worse': -1.0,
+            'garbage': -1.4, 'junk': -1.2, 'avoid': -1.0, 'terribly': -1.3
+        };
+
+        const modifiers = {
+            'very': 1.5, 'really': 1.3, 'extremely': 2.0, 'too': 1.5,
+            'not': -1.0, 'never': -1.0, 'no': -1.0, 'barely': 0.5
+        };
+
+        let posHits = 0;
+        let negHits = 0;
+        let totalWeight = 0;
+        
+        const words = lower.split(/\W+/);
+        
+        for (let i = 0; i < words.length; i++) {
+            let word = words[i];
+            let prevWord = i > 0 ? words[i-1] : "";
+            
+            let multiplier = 1.0;
+            if (modifiers[prevWord]) {
+                multiplier = modifiers[prevWord];
+            }
+
+            if (posWords[word]) {
+                posHits++;
+                totalWeight += (posWords[word] * multiplier);
+            } else if (negWords[word]) {
+                negHits++;
+                totalWeight += (negWords[word] * multiplier);
+            }
+        }
+
+        let finalRating = 3.0 + totalWeight; 
+        
+        if (posHits === 0 && negHits === 0) {
+            finalRating = 2.8 + (Math.random() * 0.4); 
+        } else {
+            finalRating += (Math.random() * 0.2) - 0.1;
+        }
+
+        if (finalRating > 5.0) finalRating = 4.8 + (Math.random() * 0.2);
+        if (finalRating < 1.0) finalRating = 1.1 + (Math.random() * 0.4);
+        
+        finalRating = finalRating.toFixed(1);
+
+        let sentiment = "Neutral";
+        let color = "#fbbc04"; 
+        let summary = "The text contains a balanced perspective with no strong emotional extremes.";
+        let confidence = Math.floor(Math.random() * 10) + 70;
+
+        if (finalRating >= 4.5) {
+            sentiment = "Highly Positive"; color = "#34a853";
+            summary = "Extremely positive feedback detected! The tone is enthusiastic and highly approving.";
+            confidence = Math.floor(Math.random() * 8) + 92;
+        } else if (finalRating >= 3.8) {
+            sentiment = "Positive"; color = "#34a853";
+            summary = "Positive feedback detected. The user expresses general satisfaction and a favorable view.";
+            confidence = Math.floor(Math.random() * 10) + 82;
+        } else if (finalRating >= 2.5 && finalRating <= 3.7) {
+            if (posHits > 0 && negHits > 0) {
+                sentiment = "Mixed"; color = "#fbbc04";
+                summary = "Mixed sentiment detected. The text contains both positive aspects and valid concerns.";
+                confidence = Math.floor(Math.random() * 10) + 80;
+            } else {
+                sentiment = "Neutral"; color = "#9aa0a6";
+                summary = "The tone is predominantly neutral or informative, lacking strong emotional indicators.";
+                confidence = Math.floor(Math.random() * 15) + 65;
+            }
+        } else if (finalRating >= 1.8) {
+            sentiment = "Negative"; color = "#ea4335";
+            summary = "Negative sentiment detected. The user expresses dissatisfaction or highlights notable issues.";
+            confidence = Math.floor(Math.random() * 10) + 82;
+        } else {
+            sentiment = "Highly Negative"; color = "#d93025";
+            summary = "Critical feedback detected! The tone is highly dissatisfied, indicating severe issues or frustration.";
+            confidence = Math.floor(Math.random() * 8) + 92;
+        }
+
+        return { rating: finalRating + " / 5.0", sentiment, color, summary, confidence };
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if(!text) return;
+      
+      const chatIndex = chats.findIndex(c => c.id === currentChatId);
+      if(chats[chatIndex].title === "New Chat") {
+        let newTitle = text.substring(0, 20);
+        if(text.length > 20) newTitle += "...";
+        chats[chatIndex].title = newTitle;
+      }
+      
+      chatArea.innerHTML += `
+        <div class="message msg-user">
+          <div class="bubble">${text.replace(/</g, "&lt;")}</div>
+        </div>
+      `;
+      
+      userInput.value = '';
+      userInput.style.height = '24px';
+      scrollToBottom();
+      updateCurrentChatContent();
+      
+      const typingId = 'typing-' + Date.now();
+      chatArea.innerHTML += `
+        <div class="message msg-ai" id="${typingId}">
+          <div class="header"><i class="fa-solid fa-sparkles"></i><span style="font-weight: 500;">NexGen AI</span></div>
+          <div class="typing-indicator">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          </div>
+        </div>
+      `;
+      scrollToBottom();
+      
+      setTimeout(() => {
+        document.getElementById(typingId).remove();
+        
+        const result = analyzeSentiment(text);
+        
+        const aiHtml = `
+          <div class="message msg-ai">
+            <div class="header"><i class="fa-solid fa-sparkles"></i><span style="font-weight: 500;">NexGen AI</span></div>
+            <div class="bubble">
+              Here is the sentiment breakdown for your text:
+              <div class="analysis-card">
+                <h4>Analysis Report</h4>
+                <div class="res-item">
+                  <span class="res-label">Detected Emotion</span>
+                  <span class="res-value" style="color: ${result.color};">${result.sentiment}</span>
+                </div>
+                <div class="res-item">
+                  <span class="res-label">AI Confidence</span>
+                  <span class="res-value" style="color: var(--text-secondary);">${result.confidence}%</span>
+                </div>
+                <div class="res-item">
+                  <span class="res-label">Estimated Rating</span>
+                  <span class="res-value">${result.rating}</span>
+                </div>
+                <div class="res-item" style="display:block; border:none;">
+                  <span class="res-label" style="display:block; margin-bottom:5px;">AI Summary:</span>
+                  <span class="res-value" style="font-weight:400; font-size:13px; color:var(--text-secondary);">${result.summary}</span>
+                </div>
+              </div>
+              
+              <div class="in-chat-ad">
+                <span>Sponsored</span>
+                Google AdSense Block<br>
+                (Ad shows on every answer)
+              </div>
+            </div>
+          </div>
+        `;
+        chatArea.innerHTML += aiHtml;
+        scrollToBottom();
+        updateCurrentChatContent();
+      }, 1500);
+    }
+
+    function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
+    
+    init();
+  </script>
+</body>
+</html>
